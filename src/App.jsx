@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import "./App.css";
 import bGround from "./assets/bg.jpg";
 import atmTexture from "./assets/atm-texture.png";
+import logoHeader from "./assets/logo.png"
 
 function App() {
   const [saldo, setSaldo] = useState(1000.0);
@@ -16,6 +17,7 @@ function App() {
 
   const ambientRef = useRef(null);
   const beepRef = useRef(null);
+  const waitRef = useRef(null);
 
   const startMusic = () => {
     if (!ambientRef.current) {
@@ -35,6 +37,9 @@ function App() {
     if (!beepRef.current) {
       beepRef.current = new Audio("/beep.mp3");
     }
+    if (!waitRef.current) {
+      waitRef.current = new Audio("/wait.mp3");
+    }
   };
 
   const playBeep = () => {
@@ -43,9 +48,17 @@ function App() {
 
   const performActionWithLoad = (action) => {
     setLoading(true);
+    if (waitRef.current) {
+      waitRef.current.currentTime = 0; // Reset to start to avoid overlap
+      waitRef.current.play().catch((err) => console.log("Wait sound failed:", err));
+    }
     setTimeout(() => {
       action();
       setLoading(false);
+      if (waitRef.current) {
+        waitRef.current.pause();
+        waitRef.current.currentTime = 0; // Reset for next play
+      }
     }, 2000);
   };
 
@@ -125,7 +138,7 @@ function App() {
       resetState();
     } else if (currentScreen === "menu" && ["1", "2", "3", "4"].includes(key)) {
       handleMenuChoice(key);
-    } else if (currentScreen === "saldo" && key === "1") {
+    } else if (["saldo", "message"].includes(currentScreen) && key === "1") {
       setCurrentScreen("menu");
       resetState();
     } else if (
@@ -198,7 +211,7 @@ function App() {
                     playBeep();
                     handleMenuChoice("3");
                   }}
-                  className="border-2  p-4 cursor-pointer hover:bg-green-700 border-blue-950"
+                  className="border-2 p-4 cursor-pointer hover:bg-green-700 border-blue-950"
                 >
                   3. Otto ▶
                 </p>
@@ -220,8 +233,7 @@ function App() {
         return (
           <>
             <ScreenTitle text="Tilin tilanne" />
-            <p className="text-2xl">{message}</p>
-
+            <p className="text-2xl whitespace-pre-line">{message}</p>
             <div className="flex justify-between px-8">
               <div className="flex flex-col space-y-4 text-left text-2xl mt-10">
                 <p
@@ -266,7 +278,7 @@ function App() {
                       key={summa}
                       onClick={() => {
                         playBeep();
-                        handleWithdraw(summa);
+                        performActionWithLoad(() => handleWithdraw(summa));
                       }}
                       className="border p-2 hover:bg-green-700"
                     >
@@ -280,7 +292,7 @@ function App() {
                       key={summa}
                       onClick={() => {
                         playBeep();
-                        handleWithdraw(summa);
+                        performActionWithLoad(() => handleWithdraw(summa));
                       }}
                       className="border p-2 hover:bg-green-700"
                     >
@@ -321,7 +333,6 @@ function App() {
               Muista ottaa korttisi!
             </p>
             <p className="text-lg whitespace-pre-line">{message}</p>
-
             <div className="flex justify-between px-8">
               <div className="flex flex-col space-y-4 text-left text-2xl mt-10">
                 <p
@@ -368,7 +379,7 @@ function App() {
       style={{ backgroundImage: `url(${bGround})` }}
     >
       <div
-        className="flex flex-col w-full h-full max-w-3xl border-8 border-yellow-600 rounded-2xl shadow-[0_0_40px_#ff0] overflow-hidden"
+        className="flex flex-col w-full h-full max-w-3xl border-8 rounded-2xl shadow-[0_0_40px_#ff0] overflow-hidden"
         style={{
           backgroundImage: `url(${atmTexture})`,
           backgroundSize: "cover",
@@ -376,13 +387,17 @@ function App() {
         }}
       >
         {/* Top Bar */}
-        <div className="w-full h-14 sm:h-16 bg-gradient-to-b from-yellow-700/80 to-yellow-900/80 flex justify-center items-center text-white font-bold text-xl sm:text-3xl tracking-widest shadow-inner">
-          RETRO OTTO 3000
+        <div className="w-full h-14 sm:h-16 bg-white flex text-orange-500 font-bold text-2xl sm:text-3xl tracking-widest shadow-white shadow-lg">
+          <img
+            src={logoHeader}
+            alt="Retro Otto Logo"
+            className="h-16 object-contain ml-7"
+          />
         </div>
 
         {/* Screen */}
         <div className="flex-grow flex items-center justify-center p-4">
-          <div className="w-full h-full screenblue border-4 border-black p-4 text-white text-center shadow-lg relative overflow-hidden">
+          <div className="w-full h-full screenblue border-4 p-4 text-white text-center relative overflow-hidden shadow-[inset_0_-10px_20px_rgba(0,0,0,0.4)]">
             <div className="absolute inset-0 bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(0,255,0,0.1)_3px)] pointer-events-none"></div>
             <AnimatePresence mode="wait">
               <motion.div
@@ -400,13 +415,13 @@ function App() {
 
             {/* Intro overlay */}
             {currentScreen === "intro" && (
-              <div className="absolute inset-0 screenblue flex items-center justify-center z-50">
+              <div className="absolute inset-0 screenblue flex items-center justify-center z-50 shadow-[inset_0_-10px_20px_rgba(0,0,0,0.4)]">
                 <button
                   onClick={() => {
                     playBeep();
                     startMusic();
                   }}
-                  className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white text-xl font-bold rounded-lg shadow-lg"
+                  className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white text-xl font-bold rounded-lg shadow-lg transition active:scale-95"
                 >
                   ▶ Käynnistä automaatti
                 </button>
@@ -416,8 +431,8 @@ function App() {
         </div>
 
         {/* Numpad */}
-        <div className="flex flex-col items-center justify-center space-y-4 p-4">
-          <div className="grid grid-cols-3 gap-4 sm:gap-6 border-4 p-6 gradient rounded-2xl shadow-lg">
+        <div className="flex flex-col items-center justify-center space-y-4 p-4 ">
+          <div className="grid grid-cols-3 gap-4 sm:gap-6 border-4 p-6 gradient rounded-2xl shadow-[inset_0_-10px_20px_rgba(0,0,0,0.8)]">
             {numpadKeys.flat().map((key) => (
               <button
                 key={key}
