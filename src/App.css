@@ -116,3 +116,8 @@ background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, 
 body {
   font-family: 'VT323', monospace;
   }
+
+.title-bg {
+background: #252559;
+background: linear-gradient(180deg,rgba(37, 37, 89, 1) 0%, rgba(221, 220, 224, 1) 100%);
+}

@@ -117,7 +117,9 @@ function App() {
   const handleMenuChoice = (choice) => {
     if (choice === "1") {
       // FIXED: Populate standard saldo layout when selected
-      setMessage(`Tilin käytettävissä oleva saldo:\n\n${saldo.toFixed(2)} €`);
+      setMessage(
+        `Tilin saldo: ${saldo.toFixed(2)} + \nTililtä nostettavissa: ${saldo.toFixed(2)} +\nKortin käteisnostovara: ${saldo.toFixed(2)} +`,
+      );
       setMessageTone("");
       setReceipt(null);
       setCurrentScreen("saldo");
@@ -374,8 +376,8 @@ function App() {
                 Näppäile tunnusluku
               </h1>
             </div>
-            <div className="bg-[#1a1a1a] px-8 py-2 mb-10">
-              <p className="text-[clamp(1.2rem,2.4vw,2rem)] text-[#d8c58a]">
+            <div className="px-8 py-2 mb-10 bg-blue-950 w-full">
+              <p className=" text-3xl text-yellow-500 p-2">
                 Suojaa tunnuslukusi
               </p>
             </div>
@@ -397,7 +399,7 @@ function App() {
             <p className="mt-12 text-[clamp(1.5rem,3vw,2.4rem)] text-white font-light">
               Lopuksi paina OK
             </p>
-            <p className="mt-10 text-[clamp(0.95rem,2vw,1.3rem)] text-green-300 opacity-90">
+            <p className="mt-40 text-6xl text-green-300 opacity-90">
               Lopuksi paina OK
             </p>
           </div>
@@ -406,50 +408,51 @@ function App() {
       case "menu":
         return (
           <>
-            <ScreenTitle text="Tervetuloa Pankkiautomaattiin!" />
-            <p className="mb-3 text-[clamp(1.4rem,6vw,2.5rem)]">Valitse</p>
-            <p className="mb-4 text-[clamp(0.8rem,2.8vw,1.25rem)] text-yellow-500 bg-blue-950 p-2">
+            <div className="mx-auto  mb-4 w-full max-w-[820px] title-bg rounded-xl">
+              <h1 className="text-7xl p-8 text-center">Valitse</h1>
+            </div>
+            <p className="mb-4 text-3xl text-yellow-500 bg-blue-950 p-2 text-center ">
               Voit lopettaa STOP-näppäimellä.
             </p>
             <div className="flex justify-between px-2 sm:px-8">
-              <div className="flex flex-col space-y-3 sm:space-y-4 text-left text-[clamp(0.85rem,3.4vw,1.25rem)] mt-6 sm:mt-10">
+              <div className="flex flex-col lg:text-3xl xl:text-5xl mt-6 sm:mt-10 text-sm">
                 <p
                   onClick={() => {
                     playBeep();
                     handleMenuChoice("1");
                   }}
-                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950"
+                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950 text-left"
                 >
-                  ◀ 1. Saldo
+                  ◀ Saldo
                 </p>
                 <p
                   onClick={() => {
                     playBeep();
                     handleMenuChoice("2");
                   }}
-                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950"
+                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950 text-left"
                 >
-                  ◀ 2. Talletus
+                  ◀ Talletus
                 </p>
               </div>
-              <div className="flex flex-col space-y-3 sm:space-y-4 text-right text-[clamp(0.85rem,3.4vw,1.25rem)] mt-6 sm:mt-10">
+              <div className="flex flex-col text-right lg:text-3xl xl:text-5xl mt-6 sm:mt-10 text-sm">
                 <p
                   onClick={() => {
                     playBeep();
                     handleMenuChoice("3");
                   }}
-                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950"
+                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950 text-right"
                 >
-                  3. Otto ▶
+                  Otto ▶
                 </p>
                 <p
                   onClick={() => {
                     playBeep();
                     handleMenuChoice("4");
                   }}
-                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950"
+                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950 text-right"
                 >
-                  4. Lopetus ▶
+                  Lopetus ▶
                 </p>
               </div>
             </div>
@@ -459,10 +462,12 @@ function App() {
       case "saldo":
         return (
           <>
-            <ScreenTitle text="Tilin tilanne" />
-            <p className="text-[clamp(0.95rem,3.6vw,1.5rem)] whitespace-pre-line mb-6">
-              {message}
-            </p>
+            <div className="mx-auto w-full max-w-[820px] "></div>
+            <h1 className="text-7xl p-8 text-center title-bg rounded-xl">
+              {" "}
+              <ScreenTitle text="Tilin tilanne" />
+            </h1>
+            <p className="text-3xl whitespace-pre-line mb-6 mt-8">{message}</p>
             <div className="flex flex-col items-center mt-6">
               <BackToMenu />
             </div>
@@ -472,18 +477,30 @@ function App() {
       case "deposit":
         return (
           <>
-            <ScreenTitle text="💳 Aloita talletus" />
-            <p className="mb-4 text-[clamp(0.8rem,2.8vw,1.25rem)] text-yellow-500 bg-blue-950 p-2">
-              Kerta talletus max 10 000 €
+            <div className="mx-auto w-full max-w-[820px] rounded-xl">
+              <h1 className="text-7xl p-4 text-center">
+                {" "}
+                <ScreenTitle text="Aloita talletus" />
+              </h1>
+            </div>
+
+            <p className="mb-4 text-3xl text-yellow-500 bg-blue-950 p-2 text-center">
+              Kertatalletus yhteensä enintään 10 000 euroa
             </p>
-            <p className="text-[clamp(0.85rem,3vw,1.1rem)]">Syötä summa:</p>
+
+            <p className="mb-4 text-2xl text-white p-2">
+              Kortti ja tili tunnistettu.
+            </p>
+
+            <p className="text-6xl text-center ">Syötä summa:</p>
             <p
-              className={`text-[clamp(1.4rem,7vw,2.5rem)] font-bold ${shake ? "animate-bounce" : ""}`}
+              className={`text-8xl font-bold text-center ${shake ? "animate-bounce" : ""}`}
             >
               {inputValue || "0"} €
             </p>
-            <p className="mt-4 text-xs text-zinc-400">
-              Paina numpadista OK vahvistaaksesi.
+            <p className="mb-4 text-xl text-blue-400 p-2 pt-12">
+              SUMMASTA VELOITETAAN PANKIN HINNASTON
+              <br /> TAI ASIAKASSOPIMUKSEN MUKAINEN PALKKIO
             </p>
           </>
         );
@@ -491,12 +508,16 @@ function App() {
       case "withdraw":
         return (
           <>
-            <ScreenTitle text="💵 Otto" />
-            <p className="mb-4 text-[clamp(0.8rem,2.8vw,1.25rem)] text-yellow-500 bg-blue-950 p-2">
-              Max nosto 10000 € / kerta
+            <div className="mx-auto w-full max-w-[820px] rounded-xl title-bg">
+              <h1 className="p-6 text-center text-7xl">Otto</h1>
+            </div>
+
+            <p className="mb-4 text-4xl text-white p-2 text-center">
+              Valitse summa
             </p>
+
             {!customWithdraw ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 px-2 sm:px-6 mt-4">
+              <div className="grid grid-cols-3 px-2 sm:px-6 mt-4">
                 {[20, 40, 60, 90, 140, 240].map((summa) => (
                   <button
                     key={summa}
@@ -542,11 +563,11 @@ function App() {
         return (
           <>
             <ScreenTitle text="📺 Tiedote" />
-            <p className="mb-4 text-[clamp(0.8rem,2.8vw,1.25rem)] text-yellow-500 bg-blue-950 p-2">
+            <p className="mb-4 text-3xl text-yellow-500 bg-blue-950 p-2 text-center">
               Muista ottaa korttisi!
             </p>
             <p
-              className={`text-[clamp(0.85rem,3vw,1.15rem)] whitespace-pre-line ${
+              className={`text-3xl text-center whitespace-pre-line ${
                 messageTone === "error"
                   ? "text-red-400"
                   : messageTone === "success"
