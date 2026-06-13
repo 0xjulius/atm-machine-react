@@ -1,26 +1,228 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* index.css - global styles */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+/* =========================
+   GLOBAL
+========================= */
 
-html, body, #root {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  font-family: 'Press Start 2P', cursive;
-  background: linear-gradient(135deg, #0a0a0a, #111111, #0a0a0a);
-  overflow: hidden;
+body {
+  font-family: 'VT323', monospace;
+  background: #0d1117;
 }
 
-* {
-  box-sizing: border-box;
+/* =========================
+   SCREEN
+   Finnish cold-blue CRT
+========================= */
+
+.screenblue {
+  background:
+    radial-gradient(circle at top, rgba(120,170,255,0.15), transparent 60%),
+    linear-gradient(
+      180deg,
+      #0a2342 0%,
+      #123761 35%,
+      #0d2b4d 65%,
+      #081b30 100%
+    );
+
+  box-shadow:
+    inset 0 0 40px rgba(120,180,255,0.15),
+    inset 0 -20px 50px rgba(0,0,0,0.55),
+    0 0 30px rgba(0,120,255,0.2);
+
+  border-radius: 10px;
 }
 
-button {
-  cursor: pointer;
-  font-family: 'Press Start 2P', cursive;
+/* CRT scanlines */
+
+.screenblue::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.03),
+      rgba(255,255,255,0.03) 1px,
+      transparent 2px,
+      transparent 4px
+    );
+
+  pointer-events: none;
+  opacity: 0.35;
 }
 
+/* =========================
+   METAL BODY
+========================= */
+
+.gradient {
+  background:
+    linear-gradient(
+      180deg,
+      #8d949c 0%,
+      #707880 45%,
+      #5b636b 55%,
+      #444c54 100%
+    );
+
+  border: 2px solid #2d333b;
+
+  box-shadow:
+    inset 0 2px 4px rgba(255,255,255,0.25),
+    inset 0 -4px 8px rgba(0,0,0,0.45),
+    0 10px 25px rgba(0,0,0,0.45);
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.btn-8 {
+  border: 2px solid #4b5563;
+
+  background:
+    linear-gradient(
+      180deg,
+      #d8dee4 0%,
+      #bcc5ce 45%,
+      #9aa4ae 55%,
+      #7d8792 100%
+    );
+
+  box-shadow:
+    inset 0 2px 2px rgba(255,255,255,0.45),
+    inset 0 -2px 4px rgba(0,0,0,0.35),
+    0 2px 8px rgba(0,0,0,0.45);
+
+  transition: all 0.08s ease;
+}
+
+.btn-8:hover {
+  filter: brightness(1.05);
+}
+
+.btn-8:active {
+  transform: translateY(2px);
+}
+
+/* STOP */
+
+.btn-9 {
+  border-color: #5a1f1f;
+
+  background:
+    linear-gradient(
+      180deg,
+      #d14b4b 0%,
+      #ba2f2f 50%,
+      #8e1d1d 100%
+    );
+}
+
+/* ENTER */
+
+.btn-10 {
+  border-color: #1d4f34;
+
+  background:
+    linear-gradient(
+      180deg,
+      #65d48d 0%,
+      #34b86a 50%,
+      #1d8f4f 100%
+    );
+}
+
+/* =========================
+   RECEIPT
+========================= */
+
+.receipt {
+  background: rgba(255,255,255,0.06);
+
+  border: 1px dashed rgba(255,255,255,0.35);
+
+  color: #d7ffe2;
+
+  backdrop-filter: blur(2px);
+
+  box-shadow:
+    inset 0 0 10px rgba(255,255,255,0.04);
+}
+
+/* =========================
+   CARD SLOT
+========================= */
+
+.card-slot {
+  background: linear-gradient(
+    180deg,
+    #111 0%,
+    #222 100%
+  );
+
+  box-shadow:
+    inset 0 2px 5px rgba(0,0,0,0.9),
+    0 1px 1px rgba(255,255,255,0.1);
+}
+
+/* =========================
+   ANIMATIONS
+========================= */
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+.shake {
+  animation: shake 0.3s;
+}
+
+@keyframes cardIn {
+  from {
+    transform: translateY(-180%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes cardOut {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateY(-180%);
+    opacity: 0;
+  }
+}
+
+.card-inserting {
+  animation: cardIn 0.7s ease-out forwards;
+}
+
+.card-ejecting {
+  animation: cardOut 0.6s ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shake,
+  .card-inserting,
+  .card-ejecting {
+    animation: none !important;
+  }
+}

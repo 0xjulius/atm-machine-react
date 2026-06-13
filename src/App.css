@@ -2,13 +2,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-
+ 
+ 
 .screenblue {
 background: rgb(0,51,102);
 background: linear-gradient(159deg, rgba(0,51,102,1) 0%, rgba(15,82,186,1) 100%);
 }
-
+ 
 .btn-8{
  border-color: #7c7c7c;
 background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0)   6%, hsla(0,0%,100%, .1) 7.5%),
@@ -20,11 +20,11 @@ background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, 
     hsl(0,0%,78%) 53%,
     hsl(0,0%,70%)100%);
 }
-
+ 
 .btn-9{
  border-color: darkslategrey;
 background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0)   6%, hsla(0,0%,100%, .1) 7.5%),
-    -webkit-repeating-linear-gradient(left, hsla(0,0%,  0%,0) 0%, hsla(0, 100%, 50%, 0)   4%, hsla(0, 100%, 50%, 0.03) 4.5%),
+    -webkit-repeating-linear-gradient(left, hsla(0, 4%, 28%, 0) 0%, hsla(0, 100%, 50%, 0)   4%, hsla(0, 100%, 50%, 0.03) 4.5%),
     -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0) 1.2%, hsla(0, 100%, 50%, 0.15) 2.2%),
     
     linear-gradient(180deg, hsl(0, 100%, 50%)  0%, 
@@ -32,7 +32,7 @@ background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, 
     hsl(0, 100%, 61%) 53%,
     hsl(0, 100%, 50%)100%);
 }
-
+ 
 .gradient {
   background: #d7d2cc;
   background: linear-gradient(
@@ -40,7 +40,7 @@ background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, 
     #d7d2cc,#304352
   );
 }
-
+ 
 .btn-10{
  border-color: darkslategrey;
 background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0)   6%, hsla(0,0%,100%, .1) 7.5%),
@@ -52,3 +52,50 @@ background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, 
     hsl(110, 100%, 83%) 53%,
     hsl(117, 100%, 52%)100%);
 }
+ 
+/* --- Added for the card / PIN / receipt features --- */
+ 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+ 
+.shake {
+  animation: shake 0.35s;
+}
+ 
+@keyframes cardIn {
+  from { transform: translateY(-180%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+ 
+@keyframes cardOut {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-180%); opacity: 0; }
+}
+ 
+.card-inserting {
+  animation: cardIn 0.7s ease-out forwards;
+}
+ 
+.card-ejecting {
+  animation: cardOut 0.6s ease-in forwards;
+}
+ 
+.receipt {
+  border: 1px dashed rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.2);
+  color: #d1fae5;
+}
+ 
+@media (prefers-reduced-motion: reduce) {
+  .shake,
+  .card-inserting,
+  .card-ejecting {
+    animation: none !important;
+  }
+}
+ 

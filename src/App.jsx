@@ -4,16 +4,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import "./App.css";
 import bGround from "./assets/bg.jpg";
 import atmTexture from "./assets/atm-texture.png";
-import logoHeader from "./assets/logo.png"
+import logoHeader from "./assets/logo.png";
 
 function App() {
   const [saldo, setSaldo] = useState(1000.0);
   const [currentScreen, setCurrentScreen] = useState("intro");
   const [inputValue, setInputValue] = useState("");
+  const [pin, setPin] = useState("");
   const [message, setMessage] = useState("");
+  const [messageTone, setMessageTone] = useState("info");
+  const [receipt, setReceipt] = useState(null);
   const [loading, setLoading] = useState(false);
   const [customWithdraw, setCustomWithdraw] = useState(false);
-  const [musicStarted, setMusicStarted] = useState(false);
+  const [cardState, setCardState] = useState("out"); // out | inserting | in | ejecting
+  const [shake, setShake] = useState(false);
+  const [muted, setMuted] = useState(false);
 
   const ambientRef = useRef(null);
   const beepRef = useRef(null);
@@ -29,8 +34,7 @@ function App() {
       .play()
       .then(() => {
         console.log("Ambience käynnistyi");
-        setMusicStarted(true);
-        setCurrentScreen("menu");
+        setCurrentScreen("idle");
       })
       .catch((err) => console.log("Musiikin käynnistys epäonnistui:", err));
 
@@ -46,11 +50,21 @@ function App() {
     if (beepRef.current) beepRef.current.play();
   };
 
+  const toggleMute = () => {
+    const next = !muted;
+    setMuted(next);
+    if (ambientRef.current) ambientRef.current.muted = next;
+    if (beepRef.current) beepRef.current.muted = next;
+    if (waitRef.current) waitRef.current.muted = next;
+  };
+
   const performActionWithLoad = (action) => {
     setLoading(true);
     if (waitRef.current) {
       waitRef.current.currentTime = 0; // Reset to start to avoid overlap
-      waitRef.current.play().catch((err) => console.log("Wait sound failed:", err));
+      waitRef.current
+        .play()
+        .catch((err) => console.log("Wait sound failed:", err));
     }
     setTimeout(() => {
       action();
@@ -64,8 +78,34 @@ function App() {
 
   const resetState = () => {
     setInputValue("");
+    setPin("");
     setMessage("");
+    setMessageTone("info");
+    setReceipt(null);
     setCustomWithdraw(false);
+  };
+
+  const triggerShake = () => {
+    setShake(true);
+    setTimeout(() => setShake(false), 350);
+  };
+
+  // ---- card lifecycle ----
+  const insertCard = () => {
+    setCardState("inserting");
+    setTimeout(() => {
+      setCardState("in");
+      setCurrentScreen("pin");
+    }, 700);
+  };
+
+  const ejectCard = (next) => {
+    setCardState("ejecting");
+    setTimeout(() => {
+      setCardState("out");
+      setCurrentScreen(next);
+      resetState();
+    }, 1800);
   };
 
   const handleMenuChoice = (choice) => {
@@ -73,33 +113,47 @@ function App() {
     if (choice === "1") {
       setMessage(
         `Tilin saldo: ${saldo.toFixed(
-          2
-        )} €\n\nTililtä nostettavissa: ${saldo.toFixed(2)} €`
+          2,
+        )} €\n\nTililtä nostettavissa: ${saldo.toFixed(2)} €`,
       );
+      setMessageTone("info");
       setCurrentScreen("saldo");
     } else if (choice === "2") setCurrentScreen("deposit");
     else if (choice === "3") setCurrentScreen("withdraw");
-    else if (choice === "4")
-      setMessage("🙏 Kiitos käytöstä! Näkemiin."), setCurrentScreen("exit");
-    else setMessage("❌ Virheellinen valinta."), setCurrentScreen("message");
+    else if (choice === "4") {
+      setMessage("🙏 Kiitos käytöstä! Näkemiin.");
+      setMessageTone("info");
+      setCurrentScreen("exit");
+      ejectCard("idle");
+    } else {
+      setMessage("❌ Virheellinen valinta.");
+      setMessageTone("error");
+      setCurrentScreen("message");
+    }
   };
 
   const handleDeposit = () => {
     const summa = parseFloat(inputValue);
     if (isNaN(summa) || summa <= 0) {
       setMessage("Syötä positiivinen numero.");
+      setMessageTone("error");
+      setReceipt(null);
     } else if (summa > 10000) {
       setMessage("Max 10 000 euroa kerralla.");
+      setMessageTone("error");
+      setReceipt(null);
     } else {
       const uusiSaldo = saldo + summa;
       setSaldo(uusiSaldo);
       setMessage(
         `💳 ${summa.toFixed(
-          2
+          2,
         )} € talletus onnistui.\n\nSinun nykyinen saldosi on ${uusiSaldo.toFixed(
-          2
-        )} €`
+          2,
+        )} €`,
       );
+      setMessageTone("success");
+      setReceipt({ type: "TALLETUS", amount: summa, balance: uusiSaldo });
     }
     setCurrentScreen("message");
     setInputValue("");
@@ -108,18 +162,26 @@ function App() {
   const handleWithdraw = (summa) => {
     if (isNaN(summa) || summa <= 0) {
       setMessage("Syötä positiivinen numero.");
+      setMessageTone("error");
+      setReceipt(null);
     } else if (summa % 5 !== 0) {
       setMessage("Vain seteleitä voi nostaa (5, 10, 20...).");
+      setMessageTone("error");
+      setReceipt(null);
     } else if (saldo >= summa) {
       const uusiSaldo = saldo - summa;
       setSaldo(uusiSaldo);
       setMessage(
         `Otto ${summa.toFixed(
-          2
-        )} € onnistui.\n\nTilin saldo: ${uusiSaldo.toFixed(2)} €`
+          2,
+        )} € onnistui.\n\nTilin saldo: ${uusiSaldo.toFixed(2)} €`,
       );
+      setMessageTone("success");
+      setReceipt({ type: "NOSTO", amount: summa, balance: uusiSaldo });
     } else {
       setMessage(`Ei tarpeeksi varoja! (Saldo: ${saldo.toFixed(2)} €)`);
+      setMessageTone("error");
+      setReceipt(null);
     }
     setCurrentScreen("message");
     setInputValue("");
@@ -127,15 +189,39 @@ function App() {
   };
 
   const handleKeyPress = (key) => {
-    if (beepRef.current) beepRef.current.play();
-    if (key === "ENTER") {
-      if (currentScreen === "deposit") performActionWithLoad(handleDeposit);
-      else if (currentScreen === "withdraw" && customWithdraw && inputValue)
-        performActionWithLoad(() => handleWithdraw(parseFloat(inputValue)));
-    } else if (key === "STOP") {
+    if (beepRef.current) {
+      beepRef.current.currentTime = 0;
+      beepRef.current.play();
+    }
+
+    if (key === "STOP") {
       setMessage("🙏 Kiitos käytöstä! Näkemiin.");
+      setMessageTone("info");
       setCurrentScreen("exit");
-      resetState();
+      ejectCard("idle");
+    } else if (key === "ENTER") {
+      if (currentScreen === "pin") {
+        if (pin.length === 4) {
+          setPin("");
+          setCurrentScreen("menu");
+        } else {
+          triggerShake();
+        }
+      } else if (currentScreen === "deposit") {
+        if (!inputValue) {
+          triggerShake();
+        } else {
+          performActionWithLoad(handleDeposit);
+        }
+      } else if (currentScreen === "withdraw" && customWithdraw) {
+        if (!inputValue) {
+          triggerShake();
+        } else {
+          performActionWithLoad(() => handleWithdraw(parseFloat(inputValue)));
+        }
+      }
+    } else if (currentScreen === "pin" && pin.length < 4 && !isNaN(key)) {
+      setPin(pin + key);
     } else if (currentScreen === "menu" && ["1", "2", "3", "4"].includes(key)) {
       handleMenuChoice(key);
     } else if (["saldo", "message"].includes(currentScreen) && key === "1") {
@@ -146,6 +232,7 @@ function App() {
         (currentScreen === "withdraw" && customWithdraw)) &&
       (!isNaN(key) || key === ".")
     ) {
+      if (key === "." && inputValue.includes(".")) return;
       setInputValue(inputValue + key);
     }
   };
@@ -156,10 +243,48 @@ function App() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
       transition={{ duration: 0.5 }}
-      className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-green-400 mt-4"
+      className="text-[clamp(1.2rem,5vw,2.2rem)] font-bold mb-3 text-green-400 mt-2"
     >
       {text}
     </motion.h2>
+  );
+
+  const ReceiptSlip = ({ data }) => {
+    const lines = [
+      "================================",
+      "        PANKKIAUTOMAATTI",
+      "================================",
+      `Tapahtuma: ${data.type}`,
+      `Summa: ${data.amount.toFixed(2)} €`,
+      `Saldo: ${data.balance.toFixed(2)} €`,
+      "--------------------------------",
+      "    Kiitos asioinnista!",
+    ];
+    return (
+      <div className="receipt mt-3 mx-auto max-w-[90%] sm:max-w-xs px-3 py-2 text-left">
+        {lines.map((l, i) => (
+          <p
+            key={i}
+            className="text-[clamp(0.55rem,2vw,0.7rem)] leading-snug whitespace-pre font-mono"
+          >
+            {l}
+          </p>
+        ))}
+      </div>
+    );
+  };
+
+  const BackToMenu = () => (
+    <p
+      className="border p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950 text-[clamp(0.9rem,3.2vw,1.5rem)] inline-block"
+      onClick={() => {
+        playBeep();
+        setCurrentScreen("menu");
+        resetState();
+      }}
+    >
+      ◀ 1. Alkuun
+    </p>
   );
 
   const renderScreenContent = () => {
@@ -168,30 +293,78 @@ function App() {
         <motion.div
           animate={{ opacity: [0.2, 1, 0.2] }}
           transition={{ repeat: Infinity, duration: 1 }}
-          className="flex justify-center items-center h-full text-green-400 font-bold text-4xl mt-20"
+          className="flex flex-col justify-center items-center h-full text-green-400 font-bold text-[clamp(1.2rem,5vw,2.5rem)] mt-10 gap-3 text-center px-2"
         >
-          Ole hyvä ja odota hetki..
+          <span>Ole hyvä ja odota hetki..</span>
+          <span className="text-[clamp(1.5rem,6vw,2.5rem)] animate-spin">
+            💳
+          </span>
         </motion.div>
       );
     }
 
     switch (currentScreen) {
+      case "idle":
+        return (
+          <div className="flex flex-col items-center justify-center h-full text-center gap-3 px-2 ">
+            <ScreenTitle text="Tervetuloa!" />
+            <p className="text-[clamp(0.85rem,3vw,1.25rem)]">
+              Aseta pankkikorttisi lukijaan
+              <br />
+              aloittaaksesi asioinnin.
+            </p>
+            <div className="text-[clamp(2rem,8vw,3rem)] animate-pulse">💳</div>
+            <p
+              onClick={() => {
+                playBeep();
+                insertCard();
+              }}
+              className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950 text-[clamp(0.85rem,3vw,1.25rem)] font-bold"
+            >
+              ▶ Syötä kortti
+            </p>
+          </div>
+        );
+
+      case "pin":
+        return (
+          <div className="flex flex-col items-center justify-center h-full text-center px-2">
+            <ScreenTitle text="🔒 Syötä PIN-koodi" />
+            <p className="mb-4 text-[clamp(0.8rem,2.8vw,1.1rem)] text-yellow-500 bg-blue-950 p-2">
+              Vahvista ENTER-näppäimellä
+            </p>
+            <div className={`flex gap-3 sm:gap-4 ${shake ? "shake" : ""}`}>
+              {[0, 1, 2, 3].map((i) => (
+                <span
+                  key={i}
+                  className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-yellow-400 ${
+                    i < pin.length ? "bg-yellow-400" : ""
+                  }`}
+                />
+              ))}
+            </div>
+            <p className="mt-4 text-[clamp(0.7rem,2.4vw,0.9rem)] opacity-70">
+              STOP peruuttaa ja palauttaa kortin
+            </p>
+          </div>
+        );
+
       case "menu":
         return (
           <>
             <ScreenTitle text="Tervetuloa Pankkiautomaattiin!" />
-            <p className="mb-4 text-4xl">Valitse</p>
-            <p className="mb-4 text-2xl text-yellow-500 bg-blue-950 h-15 p-2">
+            <p className="mb-3 text-[clamp(1.4rem,6vw,2.5rem)]">Valitse</p>
+            <p className="mb-4 text-[clamp(0.8rem,2.8vw,1.25rem)] text-yellow-500 bg-blue-950 p-2">
               Voit lopettaa STOP-näppäimellä.
             </p>
-            <div className="flex justify-between px-8">
-              <div className="flex flex-col space-y-4 text-left text-2xl mt-10">
+            <div className="flex justify-between px-2 sm:px-8">
+              <div className="flex flex-col space-y-3 sm:space-y-4 text-left text-[clamp(0.85rem,3.4vw,1.25rem)] mt-6 sm:mt-10">
                 <p
                   onClick={() => {
                     playBeep();
                     handleMenuChoice("1");
                   }}
-                  className="border-2 p-4 cursor-pointer hover:bg-green-700 border-blue-950"
+                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950"
                 >
                   ◀ 1. Saldo
                 </p>
@@ -200,18 +373,18 @@ function App() {
                     playBeep();
                     handleMenuChoice("2");
                   }}
-                  className="border-2 p-4 cursor-pointer hover:bg-green-700 border-blue-950"
+                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950"
                 >
                   ◀ 2. Talletus
                 </p>
               </div>
-              <div className="flex flex-col space-y-4 text-right text-2xl mt-10">
+              <div className="flex flex-col space-y-3 sm:space-y-4 text-right text-[clamp(0.85rem,3.4vw,1.25rem)] mt-6 sm:mt-10">
                 <p
                   onClick={() => {
                     playBeep();
                     handleMenuChoice("3");
                   }}
-                  className="border-2 p-4 cursor-pointer hover:bg-green-700 border-blue-950"
+                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950"
                 >
                   3. Otto ▶
                 </p>
@@ -220,7 +393,7 @@ function App() {
                     playBeep();
                     handleMenuChoice("4");
                   }}
-                  className="border-2 p-4 cursor-pointer hover:bg-green-700 border-blue-950"
+                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950"
                 >
                   4. Lopetus ▶
                 </p>
@@ -233,19 +406,12 @@ function App() {
         return (
           <>
             <ScreenTitle text="Tilin tilanne" />
-            <p className="text-2xl whitespace-pre-line">{message}</p>
-            <div className="flex justify-between px-8">
-              <div className="flex flex-col space-y-4 text-left text-2xl mt-10">
-                <p
-                  className="border-2 p-4 cursor-pointer hover:bg-green-700 border-blue-950"
-                  onClick={() => {
-                    playBeep();
-                    setCurrentScreen("menu");
-                    resetState();
-                  }}
-                >
-                  ◀ 1. Alkuun
-                </p>
+            <p className="text-[clamp(0.95rem,3.6vw,1.5rem)] whitespace-pre-line">
+              {message}
+            </p>
+            <div className="flex justify-between px-2 sm:px-8">
+              <div className="flex flex-col space-y-4 text-left mt-6 sm:mt-10">
+                <BackToMenu />
               </div>
             </div>
           </>
@@ -255,11 +421,17 @@ function App() {
         return (
           <>
             <ScreenTitle text="💳 Aloita talletus" />
-            <p className="mb-4 text-2xl text-yellow-500 bg-blue-950 h-15 p-2">
+            <p className="mb-4 text-[clamp(0.8rem,2.8vw,1.25rem)] text-yellow-500 bg-blue-950 p-2">
               Kerta talletus max 10 000 €
             </p>
-            <p>Syötä summa:</p>
-            <p className="text-2xl sm:text-3xl font-bold">{inputValue}</p>
+            <p className="text-[clamp(0.85rem,3vw,1.1rem)]">Syötä summa:</p>
+            <p
+              className={`text-[clamp(1.4rem,7vw,2.5rem)] font-bold ${
+                shake ? "shake" : ""
+              }`}
+            >
+              {inputValue || "0"} €
+            </p>
           </>
         );
 
@@ -267,57 +439,47 @@ function App() {
         return (
           <>
             <ScreenTitle text="💵 Otto" />
-            <p className="mb-4 text-2xl text-yellow-500 bg-blue-950 h-15 p-2">
+            <p className="mb-4 text-[clamp(0.8rem,2.8vw,1.25rem)] text-yellow-500 bg-blue-950 p-2">
               Max nosto 10000 € / kerta
             </p>
             {!customWithdraw ? (
-              <div className="flex justify-between px-8 mt-6">
-                <div className="flex flex-col space-y-4 text-left text-2xl">
-                  {[20, 40, 60].map((summa) => (
-                    <button
-                      key={summa}
-                      onClick={() => {
-                        playBeep();
-                        performActionWithLoad(() => handleWithdraw(summa));
-                      }}
-                      className="border p-2 hover:bg-green-700"
-                    >
-                      ◀ {summa} €
-                    </button>
-                  ))}
-                </div>
-                <div className="flex flex-col space-y-4 text-right text-2xl">
-                  {[90, 140, 240].map((summa) => (
-                    <button
-                      key={summa}
-                      onClick={() => {
-                        playBeep();
-                        performActionWithLoad(() => handleWithdraw(summa));
-                      }}
-                      className="border p-2 hover:bg-green-700"
-                    >
-                      {summa} € ▶
-                    </button>
-                  ))}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 px-2 sm:px-6 mt-4">
+                {[20, 40, 60, 90, 140, 240].map((summa) => (
                   <button
+                    key={summa}
                     onClick={() => {
                       playBeep();
-                      setCustomWithdraw(true);
-                      setInputValue("");
+                      performActionWithLoad(() => handleWithdraw(summa));
                     }}
-                    className="border p-2 hover:bg-green-700"
+                    className="border p-2 sm:p-3 hover:bg-green-700 text-[clamp(0.9rem,3.2vw,1.25rem)]"
                   >
-                    Muu summa ▶
+                    {summa} €
                   </button>
-                </div>
+                ))}
+                <button
+                  onClick={() => {
+                    playBeep();
+                    setCustomWithdraw(true);
+                    setInputValue("");
+                  }}
+                  className="col-span-2 sm:col-span-3 border p-2 sm:p-3 hover:bg-green-700 text-[clamp(0.9rem,3.2vw,1.25rem)]"
+                >
+                  Muu summa ▶
+                </button>
               </div>
             ) : (
-              <div className="mt-2">
-                <p className="mb-2">Syötä nostosumma:</p>
-                <p className="text-2xl sm:text-3xl font-bold">
-                  {inputValue || "—"}
+              <div className="mt-2 px-2">
+                <p className="mb-2 text-[clamp(0.85rem,3vw,1.1rem)]">
+                  Syötä nostosumma:
                 </p>
-                <p className="mt-2 text-sm opacity-80">
+                <p
+                  className={`text-[clamp(1.4rem,7vw,2.5rem)] font-bold ${
+                    shake ? "shake" : ""
+                  }`}
+                >
+                  {inputValue || "—"} €
+                </p>
+                <p className="mt-2 text-[clamp(0.7rem,2.4vw,0.9rem)] opacity-80">
                   Käytä numpadia ja paina Enter vahvistaaksesi.
                 </p>
               </div>
@@ -329,22 +491,24 @@ function App() {
         return (
           <>
             <ScreenTitle text="📺 Tiedote" />
-            <p className="mb-4 text-2xl text-yellow-500 bg-blue-950 h-15 p-2">
+            <p className="mb-4 text-[clamp(0.8rem,2.8vw,1.25rem)] text-yellow-500 bg-blue-950 p-2">
               Muista ottaa korttisi!
             </p>
-            <p className="text-lg whitespace-pre-line">{message}</p>
-            <div className="flex justify-between px-8">
-              <div className="flex flex-col space-y-4 text-left text-2xl mt-10">
-                <p
-                  className="border p-4 cursor-pointer hover:bg-green-700"
-                  onClick={() => {
-                    playBeep();
-                    setCurrentScreen("menu");
-                    resetState();
-                  }}
-                >
-                  ◀ 1. Alkuun
-                </p>
+            <p
+              className={`text-[clamp(0.85rem,3vw,1.15rem)] whitespace-pre-line ${
+                messageTone === "error"
+                  ? "text-red-400"
+                  : messageTone === "success"
+                    ? "text-green-300"
+                    : ""
+              }`}
+            >
+              {message}
+            </p>
+            {receipt && <ReceiptSlip data={receipt} />}
+            <div className="flex justify-between px-2 sm:px-8">
+              <div className="flex flex-col space-y-4 text-left mt-6 sm:mt-10">
+                <BackToMenu />
               </div>
             </div>
           </>
@@ -353,9 +517,14 @@ function App() {
       case "exit":
         return (
           <>
-            <div className="mt-20">
+            <div className="mt-10 sm:mt-20 flex flex-col items-center">
               <ScreenTitle text="Kiitos käynnistä" />
-              <p className="text-3xl">Tervetuloa uudelleen.</p>
+              <p className="text-[clamp(1.2rem,5vw,2rem)]">
+                Tervetuloa uudelleen.
+              </p>
+              <div className="text-[clamp(2rem,8vw,3rem)] mt-4 animate-bounce">
+                💳
+              </div>
             </div>
           </>
         );
@@ -379,7 +548,7 @@ function App() {
       style={{ backgroundImage: `url(${bGround})` }}
     >
       <div
-        className="flex flex-col w-full h-full max-w-3xl border-8 rounded-2xl shadow-[0_0_40px_#ff0] overflow-hidden"
+        className="flex flex-col w-full h-full max-w-6xl border-[10px] rounded-[28px] shadow-[0_10px_40px_rgba(0,0,0,0.65)] overflow-hidden"
         style={{
           backgroundImage: `url(${atmTexture})`,
           backgroundSize: "cover",
@@ -387,26 +556,49 @@ function App() {
         }}
       >
         {/* Top Bar */}
-        <div className="w-full h-14 sm:h-16 bg-white flex text-orange-500 font-bold text-2xl sm:text-3xl tracking-widest shadow-white shadow-lg">
+        <div className="w-full h-14 sm:h-16 bg-white flex items-center justify-between text-orange-500 font-bold text-2xl sm:text-3xl tracking-widest shadow-white shadow-lg px-2">
           <img
             src={logoHeader}
             alt="Retro Otto Logo"
-            className="h-16 object-contain ml-7"
+            className="h-12 sm:h-16 object-contain ml-3 sm:ml-7"
           />
+          <button
+            onClick={toggleMute}
+            aria-label={muted ? "Poista äänten mykistys" : "Mykistä äänet"}
+            className="text-base sm:text-xl px-2"
+          >
+            {muted ? "🔇" : "🔊"}
+          </button>
+        </div>
+
+        {/* Card slot */}
+        <div className="relative w-full h-3 sm:h-4 flex items-center justify-center bg-transparent">
+          <div className="absolute w-3/4 sm:w-1/2 h-1.5 sm:h-2 bg-black/70 rounded-sm shadow-[inset_0_1px_3px_rgba(0,0,0,0.9)]" />
+          {cardState !== "out" && (
+            <div
+              className={`absolute w-16 sm:w-24 h-3 sm:h-4 rounded-sm bg-gradient-to-br from-gray-200 to-gray-400 border border-gray-500 ${
+                cardState === "inserting"
+                  ? "card-inserting"
+                  : cardState === "ejecting"
+                    ? "card-ejecting"
+                    : ""
+              }`}
+            />
+          )}
         </div>
 
         {/* Screen */}
-        <div className="flex-grow flex items-center justify-center p-4">
-          <div className="w-full h-full screenblue border-4 p-4 text-white text-center relative overflow-hidden shadow-[inset_0_-10px_20px_rgba(0,0,0,0.4)]">
+        <div className="flex-grow flex items-center justify-center p-2 sm:p-4">
+          <div className="w-full h-full screenblue border-[6px] border-slate-700 p-4 sm:p-6 rounded-xl text-white text-center relative overflow-hidden shadow-[inset_0_-10px_20px_rgba(0,0,0,0.4)]">
             <div className="absolute inset-0 bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(0,255,0,0.1)_3px)] pointer-events-none"></div>
             <AnimatePresence mode="wait">
               <motion.div
-                key={currentScreen + message + customWithdraw}
+                key={`${currentScreen}-${customWithdraw}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5 }}
-                className="relative z-10 space-y-2"
+                className="relative z-10 h-full flex flex-col"
                 style={{ textShadow: "0 0 4px #00ff00, 0 0 10px #00ff00" }}
               >
                 {renderScreenContent()}
@@ -415,13 +607,13 @@ function App() {
 
             {/* Intro overlay */}
             {currentScreen === "intro" && (
-              <div className="absolute inset-0 screenblue flex items-center justify-center z-50 shadow-[inset_0_-10px_20px_rgba(0,0,0,0.4)]">
+              <div className="absolute inset-0 screenblue flex items-center justify-center z-50 shadow-[inset_0_-10px_20px_rgba(0,0,0,0.4)] p-4">
                 <button
                   onClick={() => {
                     playBeep();
                     startMusic();
                   }}
-                  className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white text-xl font-bold rounded-lg shadow-lg transition active:scale-95"
+                  className="px-5 sm:px-6 py-3 bg-green-600 hover:bg-green-700 text-white text-[clamp(0.9rem,3.6vw,1.25rem)] font-bold rounded-lg shadow-lg transition active:scale-95"
                 >
                   ▶ Käynnistä automaatti
                 </button>
@@ -431,19 +623,36 @@ function App() {
         </div>
 
         {/* Numpad */}
-        <div className="flex flex-col items-center justify-center space-y-4 p-4 ">
-          <div className="grid grid-cols-3 gap-4 sm:gap-6 border-4 p-6 gradient rounded-2xl shadow-[inset_0_-10px_20px_rgba(0,0,0,0.8)]">
+        <div className="flex flex-col items-center justify-center space-y-2 sm:space-y-4 p-2 sm:p-4">
+          <div className="grid grid-cols-3 gap-3 sm:gap-6 border-4 p-3 sm:p-6 gradient rounded-2xl shadow-[inset_0_-10px_20px_rgba(0,0,0,0.8)]">
             {numpadKeys.flat().map((key) => (
               <button
                 key={key}
                 onClick={() => handleKeyPress(key)}
-                className={`btn-8 w-16 h-12 sm:w-20 sm:h-14 border-2 text-black font-bold text-4xl sm:text-xl rounded-lg shadow-[0_0_15px_#000] transition active:scale-95 ${
-                  key === "STOP"
-                    ? "bg-red-600 hover:bg-red-700 btn-9"
-                    : key === "ENTER"
-                    ? "bg-blue-600 hover:bg-blue-700 btn-10"
-                    : "hover:bg-gray-700"
-                }`}
+                className={`
+          btn-8
+          w-14 h-11
+          sm:w-20 sm:h-14
+          border-2
+          rounded-lg
+          shadow-[0_0_15px_#000]
+          transition
+          active:scale-95
+          flex
+          items-center
+          justify-center
+          leading-none
+          overflow-hidden
+          text-black
+          font-bold
+          ${
+            key === "STOP"
+              ? "bg-red-600 hover:bg-red-700 btn-9 text-[clamp(0.7rem,2.8vw,1rem)]"
+              : key === "ENTER"
+                ? "bg-blue-600 hover:bg-blue-700 btn-10 text-[clamp(0.55rem,2.2vw,0.95rem)] px-1"
+                : "hover:bg-gray-700 text-[clamp(1rem,4vw,1.4rem)]"
+          }
+        `}
               >
                 {key}
               </button>
