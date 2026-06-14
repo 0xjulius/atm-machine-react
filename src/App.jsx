@@ -421,7 +421,7 @@ function App() {
                     playBeep();
                     handleMenuChoice("1");
                   }}
-                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950 text-left"
+                  className="border-2 border-b-0 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950 text-left"
                 >
                   ◀ Saldo
                 </p>
@@ -430,7 +430,7 @@ function App() {
                     playBeep();
                     handleMenuChoice("2");
                   }}
-                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950 text-left"
+                  className="border-2  p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950 text-left"
                 >
                   ◀ Talletus
                 </p>
@@ -441,7 +441,7 @@ function App() {
                     playBeep();
                     handleMenuChoice("3");
                   }}
-                  className="border-2 p-3 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950 text-right"
+                  className="border-2 p-3 border-b-0 sm:p-4 cursor-pointer hover:bg-green-700 border-blue-950 text-right"
                 >
                   Otto ▶
                 </p>
@@ -512,12 +512,12 @@ function App() {
               <h1 className="p-6 text-center text-7xl">Otto</h1>
             </div>
 
-            <p className="mb-4 text-4xl text-white p-2 text-center">
-              Valitse summa
+            <p id="withdraw-title" className="mb-4 text-4xl text-white p-2 text-center">
+              Valitse tai syötä nostosumma
             </p>
 
             {!customWithdraw ? (
-              <div className="grid grid-cols-3 px-2 sm:px-6 mt-4">
+              <div className="grid grid-cols-3 px-2 sm:px-6 mt-4 ">
                 {[20, 40, 60, 90, 140, 240].map((summa) => (
                   <button
                     key={summa}
@@ -543,15 +543,15 @@ function App() {
               </div>
             ) : (
               <div className="mt-2 px-2">
-                <p className="mb-2 text-[clamp(0.85rem,3vw,1.1rem)]">
+                <p className="mb-2 text-4xl text-center">
                   Syötä nostosumma:
                 </p>
                 <p
-                  className={`text-[clamp(1.4rem,7vw,2.5rem)] font-bold ${shake ? "animate-bounce" : ""}`}
+                  className={`text-5xl text-center font-bold ${shake ? "animate-bounce" : ""}`}
                 >
                   {inputValue || "—"} €
                 </p>
-                <p className="mt-2 text-[clamp(0.7rem,2.4vw,0.9rem)] opacity-80 text-yellow-400">
+                <p className="mt-2 text-2xl opacity-80 text-blue-400 pt-20">
                   Käytä numpadia ja paina OK vahvistaaksesi.
                 </p>
               </div>
@@ -623,7 +623,7 @@ function App() {
           backgroundRepeat: "no-repeat",
         }}
       >
-        <div className="absolute top-6 right-8 z-30">
+        <div className="absolute top-14 right-56 z-30">
           <button
             onClick={toggleMute}
             className="text-3xl text-zinc-700 hover:text-black transition"
@@ -680,18 +680,19 @@ function App() {
           style={{
             left: "32.9%",
             bottom: "0%",
+            top: "72%",
             width: "24.5%",
-            height: "28.8%",
+            height: "29.8%",
             zIndex: 5,
           }}
         >
-          <div className="gradient border border-zinc-700 rounded-2xl p-8 shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
-            <div className="grid grid-cols-3 gap-5">
+          <div className="gradient border border-zinc-700 rounded-2xl p-8 xl:p-10 shadow-[0_20px_40px_rgba(0,0,0,0.6)] h-full lg:px-16">
+            <div className="grid grid-cols-3 gap-4">
               {numpadKeys.flat().map((key) => (
                 <button
                   key={key}
                   onClick={() => handleKeyPress(key)}
-                  className={`btn-8 w-18 h-11 rounded-lg font-bold text-black flex items-center justify-center active:translate-y-[2px] transition-all shadow-[0_6px_12px_rgba(0,0,0,0.5)] ${
+                  className={`btn-8 h-10 w-18 rounded-lg font-bold text-black flex items-center justify-center active:translate-y-[2px] transition-all shadow-[0_6px_12px_rgba(0,0,0,0.5)] ${
                     key === "STOP"
                       ? "btn-9 text-sm"
                       : key === "OK"
