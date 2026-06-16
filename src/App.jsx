@@ -54,7 +54,7 @@ function App() {
 
     if (!cashRef.current) {
       cashRef.current = new Audio("/wait.mp3");
-      cashRef.current.volume = 2;
+      cashRef.current.volume = 1;
     }
 
     ambientRef.current.play().catch(() => {});
@@ -316,9 +316,9 @@ function App() {
         playBeep();
         setCurrentScreen("menu");
       }}
-      className="border-2 p-3 text-left cursor-pointer border-blue-950 hover:bg-green-700 text-sm"
+      className="border-2 p-3 text-left cursor-pointer border-blue-950 hover:bg-green-700 text-lg"
     >
-      ◀ Palaa päävalikkoon
+      ◀ Takaisin
     </button>
   );
 
@@ -347,13 +347,22 @@ function App() {
   const renderScreenContent = () => {
     if (loading) {
       return (
-        <div className="flex-1 flex items-center justify-center text-center">
-          <div>
-            <p className="text-3xl text-green-300 animate-pulse">
-              ODOTA HETKI...
-            </p>
-            <p className="mt-4 text-xl">Tapahtumaa käsitellään</p>
+        <div className="flex-1 flex flex-col items-center justify-center text-center">
+          {/* SPINNER */}
+          <div className="relative w-32 h-32 mb-10">
+            <div className="absolute inset-0 rounded-full border-[10px] border-blue-950 opacity-40" />
+
+            <div className="absolute inset-0 rounded-full border-[10px] border-transparent border-r-green-300 animate-[spin_2.2s_linear_infinite] shadow-[0_0_25px_rgba(74,222,128,0.7)]" />
           </div>
+
+          {/* TEXT */}
+          <p className="text-5xl text-green-300 tracking-wide animate-pulse">
+            ODOTA HETKI...
+          </p>
+
+          <p className="mt-6 text-2xl text-white opacity-90">
+            Tapahtumaa käsitellään
+          </p>
         </div>
       );
     }
@@ -361,14 +370,16 @@ function App() {
     switch (currentScreen) {
       case "idle":
         return (
-          <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-            <ScreenTitle text="TERVETULOA" />
-            <p className="text-[clamp(0.9rem,2vw,1.2rem)] leading-relaxed">
+          <div className="items-center justify-center text-center px-6">
+            <div className="mx-auto mb-4 w-full max-w-[820px] title-bg rounded-xl">
+              <h1 className="text-7xl p-8 text-center">Tervetuloa</h1>
+            </div>
+            <p className="text-3xl leading-relaxed">
               Aseta pankkikortti automaattiin
               <br />
               aloittaaksesi asioinnin.
             </p>
-            <div className="mt-8 text-5xl animate-pulse">💳</div>
+            <div className="mt-8 text-6xl animate-pulse opacity-50">💳</div>
             <button
               onClick={() => {
                 playBeep();
@@ -409,9 +420,7 @@ function App() {
                 <div className="text-[7rem] opacity-30">🤚</div>
               </div>
             </div>
-            <p className="mt-12 text-[clamp(1.5rem,3vw,2.4rem)] text-white font-light">
-              Lopuksi paina OK
-            </p>
+            <p className="text-xl text-white font-light">Lopuksi paina OK</p>
             <p className="mt-40 text-6xl text-green-300 opacity-90">
               Lopuksi paina OK
             </p>
@@ -690,7 +699,6 @@ function App() {
               <div className="absolute inset-0 flex items-center justify-center z-20 flex-col crt-lines">
                 <button
                   onClick={() => {
-                    playBeep();
                     startMusic();
                   }}
                   className="border border-green-600 px-10 py-5 text-green-300 hover:bg-green-900 transition"
@@ -722,9 +730,9 @@ function App() {
                   onClick={() => handleKeyPress(key)}
                   className={`btn-8 h-10 w-18 rounded-lg font-bold text-black flex items-center justify-center active:translate-y-[2px] transition-all shadow-[0_6px_12px_rgba(0,0,0,0.5)] ${
                     key === "STOP"
-                      ? "btn-9 text-sm"
+                      ? "btn-9 text-xl"
                       : key === "OK"
-                        ? "btn-10 text-sm"
+                        ? "btn-10 text-xl"
                         : "text-2xl"
                   }`}
                 >
