@@ -44,7 +44,7 @@ function App() {
     if (!ambientRef.current) {
       ambientRef.current = new Audio("/ambience.mp3");
       ambientRef.current.loop = true;
-      ambientRef.current.volume = 0.25;
+      ambientRef.current.volume = 0.5;
     }
 
     if (!beepRef.current) {
@@ -53,13 +53,8 @@ function App() {
     }
 
     if (!cashRef.current) {
-      cashRef.current = new Audio("/cash.mp3");
-      cashRef.current.volume = 1;
-    }
-
-    if (!successRef.current) {
-      successRef.current = new Audio("/success.mp3");
-      successRef.current.volume = 1;
+      cashRef.current = new Audio("/wait.mp3");
+      cashRef.current.volume = 2;
     }
 
     ambientRef.current.play().catch(() => {});
@@ -76,7 +71,16 @@ function App() {
   const playCash = () => {
     if (cashRef.current && !muted) {
       cashRef.current.currentTime = 0;
+
       cashRef.current.play().catch(() => {});
+
+      // STOP AFTER 3s
+      setTimeout(() => {
+        if (cashRef.current) {
+          cashRef.current.pause();
+          cashRef.current.currentTime = 0;
+        }
+      }, 4000);
     }
   };
 
@@ -137,20 +141,16 @@ function App() {
     }
 
     if (choice === "4") {
-      setCurrentScreen("exit");
-      setTimeout(() => {
-        setCurrentScreen("idle");
-        setPin("");
-        setInputValue("");
-        setCustomWithdraw(false);
-        setCardState("out");
-      }, 300);
+      showExitScreen();
     }
   };
 
   // HELPER: Reusable action loader wrapper
   const performActionWithLoad = (actionCallback) => {
+    playCash();
+
     setLoading(true);
+
     setTimeout(() => {
       setLoading(false);
       actionCallback();
@@ -201,7 +201,6 @@ function App() {
         `Otto ${summa.toFixed(2)} € onnistui.\n\nTilin saldo: ${uusiSaldo.toFixed(2)} €`,
       );
       setMessageTone("success");
-      playCash();
       setReceipt({ type: "NOSTO", amount: summa, balance: uusiSaldo });
     } else {
       setMessage(`Ei tarpeeksi varoja! (Saldo: ${saldo.toFixed(2)} €)`);
@@ -220,6 +219,24 @@ function App() {
   };
 
   // =========================================
+  // EXIT SCREEN
+  // =========================================
+
+  const showExitScreen = () => {
+    setCurrentScreen("exit");
+
+    setTimeout(() => {
+      setCurrentScreen("idle");
+      setPin("");
+      setInputValue("");
+      setCustomWithdraw(false);
+      setCardState("out");
+      setMessage("");
+      setReceipt(null);
+    }, 2500);
+  };
+
+  // =========================================
   // KEYPAD
   // =========================================
 
@@ -228,11 +245,7 @@ function App() {
 
     // STOP
     if (key === "STOP") {
-      setCurrentScreen("idle");
-      setPin("");
-      setInputValue("");
-      setCustomWithdraw(false);
-      setCardState("out");
+      showExitScreen();
       return;
     }
 
@@ -512,7 +525,10 @@ function App() {
               <h1 className="p-6 text-center text-7xl">Otto</h1>
             </div>
 
-            <p id="withdraw-title" className="mb-4 text-4xl text-white p-2 text-center">
+            <p
+              id="withdraw-title"
+              className="mb-4 text-4xl text-white p-2 text-center"
+            >
               Valitse tai syötä nostosumma
             </p>
 
@@ -543,9 +559,7 @@ function App() {
               </div>
             ) : (
               <div className="mt-2 px-2">
-                <p className="mb-2 text-4xl text-center">
-                  Syötä nostosumma:
-                </p>
+                <p className="mb-2 text-4xl text-center">Syötä nostosumma:</p>
                 <p
                   className={`text-5xl text-center font-bold ${shake ? "animate-bounce" : ""}`}
                 >
@@ -586,13 +600,27 @@ function App() {
 
       case "exit":
         return (
-          <div className="mt-10 sm:mt-20 flex flex-col items-center">
-            <ScreenTitle text="Kiitos käynnistä" />
-            <p className="text-[clamp(1.2rem,5vw,2rem)]">
-              Tervetuloa uudelleen.
-            </p>
-            <div className="text-[clamp(2rem,8vw,3rem)] mt-4 animate-bounce">
-              💳
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
+            <div className="w-full max-w-[900px]">
+              <h1 className="text-[clamp(2.5rem,6vw,5rem)] text-white tracking-wide mb-6">
+                Kiitos käynnistä
+              </h1>
+
+              <div className="bg-blue-950 py-4 px-6 mb-10 border border-blue-800">
+                <p className="text-[clamp(1.4rem,3vw,2.2rem)] text-yellow-400">
+                  Tervetuloa uudelleen.
+                </p>
+              </div>
+
+              <div className="flex justify-center">
+                <div className="text-[clamp(4rem,10vw,8rem)] animate-bounce">
+                  💳
+                </div>
+              </div>
+
+              <p className="mt-12 text-[clamp(1rem,2vw,1.4rem)] text-green-300 opacity-90">
+                Muista ottaa korttisi.
+              </p>
             </div>
           </div>
         );
