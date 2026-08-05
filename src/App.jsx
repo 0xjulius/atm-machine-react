@@ -322,19 +322,19 @@ function App() {
     </button>
   );
 
-  const ReceiptSlip = ({ data }) => (
-    <div className="mt-4 p-3 bg-white text-black font-mono text-left text-xs max-w-xs mx-auto rounded shadow-md">
-      <p className="text-center font-bold border-b border-dashed border-gray-400 pb-1 mb-1">
-        OTTO KUITTI
-      </p>
-      <p>TAPAHTUMA: {data.type}</p>
-      <p>MÄÄRÄ: {data.amount.toFixed(2)} €</p>
-      <p>JÄLJELLÄ: {data.balance.toFixed(2)} €</p>
-      <p className="text-center text-[9px] mt-2 text-gray-500">
-        Kiitos asioinnistasi!
-      </p>
-    </div>
-  );
+const ReceiptSlip = ({ data }) => (
+  <div className="mt-2 p-2 bg-white text-black font-mono text-left text-[11px] max-w-[220px] mx-auto rounded shadow-md">
+    <p className="text-center font-bold border-b border-dashed border-gray-400 pb-0.5 mb-0.5">
+      OTTO KUITTI
+    </p>
+    <p>TAPAHTUMA: {data.type}</p>
+    <p>MÄÄRÄ: {data.amount.toFixed(2)} €</p>
+    <p>JÄLJELLÄ: {data.balance.toFixed(2)} €</p>
+    <p className="text-center text-[8px] mt-1 text-gray-500">
+      Kiitos asioinnistasi!
+    </p>
+  </div>
+);
 
   const ScreenTitle = ({ text }) => (
     <h2 className="text-[clamp(1.7rem,6vw,3rem)] tracking-wide mb-6">{text}</h2>
@@ -372,7 +372,7 @@ function App() {
         return (
           <div className="items-center justify-center text-center px-6">
             <div className="mx-auto mb-4 w-full max-w-[820px] title-bg rounded-xl">
-              <h1 className="text-7xl p-8 text-center">Tervetuloa</h1>
+              <h1 className="text-5xl p-8 text-center">Tervetuloa</h1>
             </div>
             <p className="text-3xl leading-relaxed">
               Aseta pankkikortti automaattiin
@@ -417,11 +417,11 @@ function App() {
                 ))}
               </div>
               <div className="w-[260px] h-[260px] bg-[#2f43c7] flex absolute items-center justify-center shadow-[inset_0_0_30px_rgba(0,0,0,0.45)]">
-                <div className="text-[7rem] opacity-30">🤚</div>
+                <div className="text-[7rem] opacity-20">🤚</div>
               </div>
             </div>
             <p className="text-xl text-white font-light">Lopuksi paina OK</p>
-            <p className="mt-40 text-6xl text-green-300 opacity-90">
+            <p className="mt-20 text-5xl text-green-300 opacity-90">
               Lopuksi paina OK
             </p>
           </div>
@@ -431,13 +431,13 @@ function App() {
         return (
           <>
             <div className="mx-auto  mb-4 w-full max-w-[820px] title-bg rounded-xl">
-              <h1 className="text-7xl p-8 text-center">Valitse</h1>
+              <h1 className="text-4xl p-8 text-center">Valitse</h1>
             </div>
             <p className="mb-4 text-3xl text-yellow-500 bg-blue-950 p-2 text-center ">
               Voit lopettaa STOP-näppäimellä.
             </p>
             <div className="flex justify-between px-2 sm:px-8">
-              <div className="flex flex-col lg:text-3xl xl:text-5xl mt-6 sm:mt-10 text-sm">
+              <div className="flex flex-col lg:text-3xl xl:text-4xl mt-6 sm:mt-10 text-sm">
                 <p
                   onClick={() => {
                     playBeep();
@@ -457,7 +457,7 @@ function App() {
                   ◀ Talletus
                 </p>
               </div>
-              <div className="flex flex-col text-right lg:text-3xl xl:text-5xl mt-6 sm:mt-10 text-sm">
+              <div className="flex flex-col text-right lg:text-3xl xl:text-4xl mt-6 sm:mt-10 text-sm">
                 <p
                   onClick={() => {
                     playBeep();
@@ -485,7 +485,7 @@ function App() {
         return (
           <>
             <div className="mx-auto w-full max-w-[820px] "></div>
-            <h1 className="text-7xl p-8 text-center title-bg rounded-xl">
+            <h1 className="text-5xl p-8 text-center title-bg rounded-xl">
               {" "}
               <ScreenTitle text="Tilin tilanne" />
             </h1>
@@ -506,17 +506,17 @@ function App() {
               </h1>
             </div>
 
-            <p className="mb-4 text-3xl text-yellow-500 bg-blue-950 p-2 text-center">
+            <p className="mb-4 text-2xl text-yellow-500 bg-blue-950 p-2 text-center">
               Kertatalletus yhteensä enintään 10 000 euroa
             </p>
 
-            <p className="mb-4 text-2xl text-white p-2">
+            <p className="mb-4 text-xl text-white p-2">
               Kortti ja tili tunnistettu.
             </p>
 
-            <p className="text-6xl text-center ">Syötä summa:</p>
+            <p className="text-3xl text-center ">Syötä summa:</p>
             <p
-              className={`text-8xl font-bold text-center ${shake ? "animate-bounce" : ""}`}
+              className={`text-4xl font-bold text-center ${shake ? "animate-bounce" : ""}`}
             >
               {inputValue || "0"} €
             </p>
@@ -584,27 +584,31 @@ function App() {
 
       case "message":
         return (
-          <>
-            <ScreenTitle text="📺 Tiedote" />
-            <p className="mb-4 text-3xl text-yellow-500 bg-blue-950 p-2 text-center">
-              Muista ottaa korttisi!
-            </p>
-            <p
-              className={`text-3xl text-center whitespace-pre-line ${
-                messageTone === "error"
-                  ? "text-red-400"
-                  : messageTone === "success"
-                    ? "text-green-300"
-                    : ""
-              }`}
-            >
-              {message}
-            </p>
-            {receipt && <ReceiptSlip data={receipt} />}
-            <div className="flex flex-col items-center mt-6">
+          <div className="flex flex-col h-full justify-between pb-2">
+            <div>
+              <ScreenTitle text="📺 Tiedote" />
+              <p className="mb-2 text-3xl text-yellow-500 bg-blue-950 p-2 text-center">
+                Muista ottaa korttisi!
+              </p>
+              <p
+                className={`text-2xl text-center whitespace-pre-line mt-4 ${
+                  messageTone === "error"
+                    ? "text-red-400"
+                    : messageTone === "success"
+                      ? "text-green-300"
+                      : ""
+                }`}
+              >
+                {message}
+              </p>
+              {receipt && <ReceiptSlip data={receipt} />}
+            </div>
+
+            {/* Nappi aivan alareunassa, näkyy varmasti */}
+            <div className="flex flex-col items-start pt-2">
               <BackToMenu />
             </div>
-          </>
+          </div>
         );
 
       case "exit":
@@ -652,7 +656,7 @@ function App() {
       style={{ backgroundImage: `url(${bGround})` }}
     >
       <div
-        className="relative w-[70%] h-screen bg-black overflow-hidden shadow-2xl"
+        className="relative w-[65%] h-screen bg-black overflow-hidden shadow-2xl"
         style={{
           backgroundImage: `url(${atmFrame})`,
           backgroundSize: "center",
@@ -714,26 +718,26 @@ function App() {
         <div
           className="absolute z-100"
           style={{
-            left: "32.9%",
-            bottom: "0%",
-            top: "72%",
-            width: "24.5%",
-            height: "29.8%",
+            left: "33.9%",
+            bottom: "1%", // Nostetaan hieman ylemmäs
+            top: "70%", // Säädetään alkamaan ylempää
+            width: "22.5%",
+            height: "30%",
             zIndex: 5,
           }}
         >
-          <div className="gradient border border-zinc-700 rounded-2xl p-8 xl:p-10 shadow-[0_20px_40px_rgba(0,0,0,0.6)] h-full lg:px-16">
-            <div className="grid grid-cols-3 gap-4">
+          <div className="gradient border border-zinc-700 rounded-2xl p-3 xl:p-4 shadow-[0_20px_40px_rgba(0,0,0,0.6)] h-full flex flex-col justify-center">
+            <div className="grid grid-cols-3 gap-2">
               {numpadKeys.flat().map((key) => (
                 <button
                   key={key}
                   onClick={() => handleKeyPress(key)}
-                  className={`btn-8 h-10 w-18 rounded-lg font-bold text-black flex items-center justify-center active:translate-y-[2px] transition-all shadow-[0_6px_12px_rgba(0,0,0,0.5)] ${
+                  className={`btn-8 h-9 w-full rounded-lg font-bold text-black flex items-center justify-center active:translate-y-[2px] transition-all shadow-[0_4px_8px_rgba(0,0,0,0.5)] ${
                     key === "STOP"
-                      ? "btn-9 text-xl"
+                      ? "btn-9 text-base bg-red-600 text-white"
                       : key === "OK"
-                        ? "btn-10 text-xl"
-                        : "text-2xl"
+                        ? "btn-10 text-base bg-green-600 text-white"
+                        : "text-xl bg-gray-200"
                   }`}
                 >
                   {key}

@@ -13,10 +13,33 @@ body {
   background: #0d1117;
 }
 
-/* =========================
-   SCREEN
-   Finnish cold-blue CRT
-========================= */
+/* Pienten näyttöjen (mobiilin) esto */
+@media (max-width: 768px) {
+  /* Piilotetaan React-sovelluksen varsinainen sisältö */
+  #root > * {
+    display: none !important;
+  }
+
+  /* Luodaan koko ruudun peittävä ilmoitus */
+  #root::before {
+    content: "Tämä sivusto ei ole käytettävissä mobiilissa. Ole hyvä ja avaa sivusto tietokoneella.";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #121212; /* Taustaväri */
+    color: #ffffff;            /* Tekstiväri */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    font-size: 1.2rem;
+    box-sizing: border-box;
+    z-index: 99999;
+  }
+}
 
 .screenblue {
   background:
